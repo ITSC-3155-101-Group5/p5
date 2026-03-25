@@ -1,4 +1,4 @@
-# \<Project Name\> Scrum Team
+# \<Group 5> Scrum Team
 ## Product Owner
 \<Emerson\>
 ## Scrum Master

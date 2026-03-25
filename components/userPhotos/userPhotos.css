@@ -1,0 +1,27 @@
+.user-photos-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.user-photo-card {
+    max-width: 700px;
+}
+
+.photo-img {
+  width: 100%;
+  height: auto;
+}
+
+.comments-section {
+  margin-top: 8px;
+}
+
+.comment-item {
+  margin-bottom: 8px;
+}
+
+.comment-item:last-child {
+  font-weight: bold;
+}
