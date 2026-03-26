@@ -7,9 +7,6 @@ import {
 import './userDetail.css';
 import fetchModel from "../../lib/fetchModelData";
 
-/**
- * Define UserDetail, a React component of project #5
- */
 class UserDetail extends React.Component {
     constructor(props) {
         super(props);
@@ -17,65 +14,67 @@ class UserDetail extends React.Component {
             user: undefined
         };
     }
+
     componentDidMount() {
-        const new_user_id = this.props.match.params.userId;
-        this.handleUserChange(new_user_id);
+        const userId = this.props.match?.params?.userId;
+        if (userId) this.handleUserChange(userId);
     }
 
     componentDidUpdate() {
-        const new_user_id = this.props.match.params.userId;
-        const current_user_id = this.state.user?._id;
-        if (current_user_id  !== new_user_id){
-            this.handleUserChange(new_user_id);
+        const newUserId = this.props.match?.params?.userId;
+        const currentUserId = this.state.user?._id;
+        if (newUserId && newUserId !== currentUserId) {
+            this.handleUserChange(newUserId);
         }
     }
 
-    handleUserChange(user_id){
-        fetchModel("/user/" + user_id)
-            .then((response) =>
-            {
-                const new_user = response.data;
-                this.setState({
-                    user: new_user
-                });
-                const main_content = "User Details for " + new_user.first_name + " " + new_user.last_name;
-                this.props.changeMainContent(main_content);
+    handleUserChange(userId) {
+        fetchModel("/user/" + userId)
+            .then((response) => {
+                const newUser = response.data;
+                this.setState({ user: newUser });
+                if (typeof this.props.changeMainContent === 'function') {
+                    this.props.changeMainContent(
+                        `User Details for ${newUser.first_name} ${newUser.last_name}`
+                    );
+                }
+            })
+            .catch((err) => {
+                console.error('Failed to fetch user:', err.status, err.statusText);
             });
     }
 
     render() {
-        return this.state.user ? (
+        const { user } = this.state;
+
+        return user ? (
             <div>
                 <Box component="form" noValidate autoComplete="off">
                     <div>
-                        <Button variant="contained" component="a" href={"#/photos/" + this.state.user._id}>
+                        <Button variant="contained" component="a" href={"#/photos/" + user._id}>
                             User Photos
                         </Button>
                     </div>
                     <div>
-                        <TextField id="first_name" label="First Name" variant="outlined" disabled fullWidth
-                                   margin="normal"
-                                   value={this.state.user.first_name}/>
+                        <TextField label="First Name" variant="outlined" disabled fullWidth
+                                   margin="normal" value={user.first_name || ""} />
                     </div>
                     <div>
-                        <TextField id="last_name" label="Last Name" variant="outlined" disabled fullWidth
-                                   margin="normal"
-                                   value={this.state.user.last_name}/>
+                        <TextField label="Last Name" variant="outlined" disabled fullWidth
+                                   margin="normal" value={user.last_name || ""} />
                     </div>
                     <div>
-                        <TextField id="location" label="Location" variant="outlined" disabled fullWidth
-                                   margin="normal"
-                                   value={this.state.user.location}/>
+                        <TextField label="Location" variant="outlined" disabled fullWidth
+                                   margin="normal" value={user.location || ""} />
                     </div>
                     <div>
-                        <TextField id="description" label="Description" variant="outlined" multiline rows={4}
-                                   disabled
-                                   fullWidth margin="normal" value={this.state.user.description}/>
+                        <TextField label="Description" variant="outlined" multiline rows={4}
+                                   disabled fullWidth margin="normal"
+                                   value={user.description || ""} />
                     </div>
                     <div>
-                        <TextField id="occupation" label="Occupation" variant="outlined" disabled fullWidth
-                                   margin="normal"
-                                   value={this.state.user.occupation}/>
+                        <TextField label="Occupation" variant="outlined" disabled fullWidth
+                                   margin="normal" value={user.occupation || ""} />
                     </div>
                 </Box>
             </div>

@@ -1,50 +1,36 @@
 import React from 'react';
-
-import {
-  AppBar, Toolbar, Typography
-} from '@mui/material';
+import { AppBar, Toolbar, Typography } from '@mui/material';
+import fetchModel from '../../lib/fetchModelData';
 import './TopBar.css';
 
-/**
- * Define TopBar, a React componment of project #5
- */
 class TopBar extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      version: undefined,
+    };
   }
 
-  getContext() {
-    const hash = window.location.hash;
-
-    const photosMatch = hash.match(/^#\/photos\/([^/]+)$/);
-    if (photosMatch) {
-      const user = window.models.userModel(photosMatch[1]);
-      if (user) {
-        return `Photos of ${user.first_name} ${user.last_name}`;
-      }
-    }
-
-    const usersMatch = hash.match(/^#\/users\/([^/]+)$/);
-    if (usersMatch) {
-      const user = window.models.userModel(usersMatch[1]);
-      if (user) {
-        return `Profile of ${user.first_name} ${user.last_name}`;
-      }
-    }
-
-    return 'Users';
+  componentDidMount() {
+    fetchModel('/test/info')
+      .then((response) => {
+        this.setState({ version: response.data.__v });
+      })
+      .catch((err) => {
+        console.error('Failed to fetch version:', err.status, err.statusText);
+      });
   }
-
 
   render() {
     return (
       <AppBar className="topbar-appBar" position="absolute">
         <Toolbar>
           <Typography variant="h5" color="inherit" style={{ flexGrow: 1 }}>
-              Chelsey Clinton
+            Chelsey Clinton
+            {this.state.version !== undefined && ` — v${this.state.version}`}
           </Typography>
           <Typography variant="h6" color="inherit">
-              {this.getContext()}
+            {this.props.mainContent || ''}
           </Typography>
         </Toolbar>
       </AppBar>
