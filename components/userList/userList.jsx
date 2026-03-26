@@ -8,9 +8,6 @@ from '@mui/material';
 import './userList.css';
 import fetchModel from "../../lib/fetchModelData";
 
-/**
- * Define UserList, a React component of project #5
- */
 class UserList extends React.Component {
     constructor(props) {
         super(props);
@@ -26,9 +23,8 @@ class UserList extends React.Component {
 
     componentDidUpdate() {
         const new_user_id = this.props.match?.params.userId;
-        //console.log(new_user_id);
+
         const current_user_id = this.state.user_id;
-        //console.log(current_user_id);
         if (current_user_id  !== new_user_id){
             this.handleUserChange(new_user_id);
         }
