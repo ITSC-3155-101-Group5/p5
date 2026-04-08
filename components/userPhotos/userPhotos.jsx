@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Typography, Card, CardContent, CardMedia, Box
 } from '@mui/material';
-import FetchModel from '../../lib/fetchModelData';
+import axios from 'axios';
 import './userPhotos.css';
 
 /**
@@ -24,7 +24,7 @@ class UserPhotos extends React.Component {
     const userId = this.props.match.params.userId;
 
     // Fetch user info
-    FetchModel(`/user/${userId}`)
+    axios.get(`/user/${userId}`)
       .then((res) => {
         this.setState({ user: res.data });
       })
@@ -34,7 +34,7 @@ class UserPhotos extends React.Component {
       });
 
     // Fetch user photos
-    FetchModel(`/photosOfUser/${userId}`)
+    axios.get(`/photosOfUser/${userId}`)
       .then((res) => {
         this.setState({ photos: res.data, loading: false });
       })

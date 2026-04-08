@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography } from '@mui/material';
-import fetchModel from '../../lib/fetchModelData';
+import axios from 'axios';
 import './TopBar.css';
 
 class TopBar extends React.Component {
@@ -12,7 +12,7 @@ class TopBar extends React.Component {
   }
 
   componentDidMount() {
-    fetchModel('/test/info')
+    axios.get('/test/info')
       .then((response) => {
         this.setState({ version: response.data.__v });
       })
