@@ -143,7 +143,13 @@ app.get("/test/:p1", function (request, response) {
  * URL /user/list - Returns all the User objects.
  */
 app.get("/user/list", function (request, response) {
-  response.status(200).send(models.userListModel());
+  User.find({}, "_id first_name last_name", function (err, users) {
+    if (err) {
+      response.status(400).send(err);
+    } else {
+      response.status(200).send(users);
+    }
+  });
 });
 
 /**
