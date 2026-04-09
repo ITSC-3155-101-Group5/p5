@@ -29,6 +29,7 @@
     "file-loader": "^6.2.0",
     "js-yaml": "^4.1.0",
     "mongoose": "^6.13.9",
+    "moongose": "^1.0.0",
     "nodemon": "^2.0.16",
     "prismjs": "^1.26.0",
     "promise": "^8.1.0",

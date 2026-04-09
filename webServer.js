@@ -203,27 +203,36 @@ app.get("/photosOfUser/:id", async function (request, response) {
     }
 
     // Fetch photos and populate comment user info
-    const photos = await Photo.find({ user_id: id })
+    const photos = await Photo. find({user_id: id} , {__v: 0 })
       .populate("comments.user_id", "_id first_name last_name");
 
     // Clone objects (required by assignment)
     const photosObj = JSON.parse(JSON.stringify(photos));
 
     // Restructure comments
-    photosObj.forEach((photo) => {
-      photo.comments = photo.comments.map((comment) => ({
-        _id: comment._id,
-        comment: comment.comment,
-        date_time: comment.date_time,
-        user: comment.user_id
-          ? {
-              _id: comment.user_id._id,
-              first_name: comment.user_id.first_name,
-              last_name: comment.user_id.last_name,
-            }
-          : null,
-      }));
-    });
+  
+photosObj.forEach((photo) => {
+  // Add photo owner info
+  photo.user = {
+    _id: user._id,
+    first_name: user.first_name,
+    last_name: user.last_name,
+  };
+
+  // Your existing comment restructure
+  photo.comments = photo.comments.map((comment) => ({
+    _id: comment._id,
+    comment: comment.comment,
+    date_time: comment.date_time,
+    user: comment.user_id
+      ? {
+          _id: comment.user_id._id,
+          first_name: comment.user_id.first_name,
+          last_name: comment.user_id.last_name,
+        }
+      : null,
+  }));
+});
 
     response.status(200).send(photosObj);
   } catch (err) {
@@ -235,7 +244,7 @@ app.get("/photosOfUser/:id", async function (request, response) {
 const server = app.listen(3000, function () {
   const port = server.address().port;
   console.log(
-    "Listening at http://localhost/:" +
+    "Listening at http://localhost:" +
       port +
       " exporting the directory " +
       __dirname
