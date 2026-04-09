@@ -185,23 +185,49 @@ app.get("/user/:id", function (request, response) {
 /**
  * URL /photosOfUser/:id - Returns the Photos for User (id).
  */
-app.get("/photosOfUser/:id", function (request, response) {
+app.get("/photosOfUser/:id", async function (request, response) {
   const id = request.params.id;
-  const photos = models.photoOfUserModel(id);
-  if (photos.length === 0) {
-    console.log("Photos for user with _id:" + id + " not found.");
-    response.status(400).send("Not found");
+
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    response.status(400).send("Invalid user id");
     return;
   }
-  response.status(200).send(photos);
-});
 
-const server = app.listen(3000, function () {
-  const port = server.address().port;
-  console.log(
-    "Listening at http://localhost:" +
-      port +
-      " exporting the directory " +
-      __dirname
-  );
+  try {
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      response.status(400).send("User not found");
+      return;
+    }
+
+    // Fetch photos and populate comment user info
+    const photos = await Photo.find({ user_id: id })
+      .populate("comments.user_id", "_id first_name last_name");
+
+    // Clone objects (required by assignment)
+    const photosObj = JSON.parse(JSON.stringify(photos));
+
+    // Restructure comments
+    photosObj.forEach((photo) => {
+      photo.comments = photo.comments.map((comment) => ({
+        _id: comment._id,
+        comment: comment.comment,
+        date_time: comment.date_time,
+        user: comment.user_id
+          ? {
+              _id: comment.user_id._id,
+              first_name: comment.user_id.first_name,
+              last_name: comment.user_id.last_name,
+            }
+          : null,
+      }));
+    });
+
+    response.status(200).send(photosObj);
+  } catch (err) {
+    console.error(err);
+    response.status(500).send("Server error");
+  }
 });
