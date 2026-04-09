@@ -240,13 +240,3 @@ const server = app.listen(3000, function () {
       __dirname
   );
 });
-fetch('/api/data')
-  .then(response => {
-    if (!response.ok) { // Returns true for 200-299 status codes
-      if (response.status === 500) {
-        throw new Error("Server crashed or encountered an error.");
-      }
-    }
-    return response.json();
-  })
-  .catch(error => console.error("Caught error:", error)); // Now handles the 500
