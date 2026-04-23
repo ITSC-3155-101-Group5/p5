@@ -159,6 +159,14 @@ mongoose.connect("mongodb://127.0.0.1/project6", {
 app.use(express.static(__dirname));
 const fs = require("fs");
 
+
+app.use(session({
+  secret: "secretKey",
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(bodyParser.json());
+
 const processFormBody = multer({
   storage: multer.memoryStorage(),
 }).single("uploadedphoto");
@@ -360,55 +368,37 @@ app.get("/photosOfUser/:id", requireLogin, async function (request, response) {
   }
 });
 
-app.post("/commentsOfPhoto/:photo_id", (req, res) => {
-  const commentText = req.body.comment;
+app.post("/commentsOfPhoto/:photo_id", requireLogin, async function (request, response) {
+  const commentText = request.body.comment;
 
-  // Reject empty comment
   if (!commentText || commentText.trim() === "") {
-    res.status(400).send("Comment cannot be empty");
+    response.status(400).send("Comment cannot be empty");
     return;
   }
 
-  const photoId = req.params.photo_id;
+  const photoId = request.params.photo_id;
 
-  // Find the photo across all users
-  let foundPhoto = null;
-
-  const users = Models.userListModel();
-  users.forEach((user) => {
-    const photos = Models.photoOfUserModel(user._id);
-    photos.forEach((photo) => {
-      if (photo._id === photoId) {
-        foundPhoto = photo;
-      }
-    });
-  });
-
-  if (!foundPhoto) {
-    res.status(404).send("Photo not found");
-    return;
-  }
-
-  // Create new comment
-  const newComment = {
-    _id: "c" + Date.now(),
-    comment: commentText,
-    date_time: new Date().toISOString(),
-    user: req.session.user || {
-      _id: "unknown",
-      first_name: "Anonymous",
-      last_name: ""
+  try {
+    const photo = await Photo.findById(photoId);
+    if (!photo) {
+      response.status(404).send("Photo not found");
+      return;
     }
-  };
 
-  // Add comment
-  if (!foundPhoto.comments) {
-    foundPhoto.comments = [];
+    const newComment = {
+      comment: commentText,
+      date_time: new Date(),
+      user_id: request.session.user._id,
+    };
+
+    photo.comments.push(newComment);
+    await photo.save();
+
+    response.status(200).json(newComment);
+  } catch (err) {
+    console.error(err);
+    response.status(500).send("Server error");
   }
-
-  foundPhoto.comments.push(newComment);
-
-  res.status(200).json(newComment);
 });
 
 const server = app.listen(3000, function () {
