@@ -158,9 +158,7 @@ mongoose.connect("mongodb://127.0.0.1/project6", {
 
 app.use(express.static(__dirname));
 const fs = require("fs");
-const session = require("express-session");
-const bodyParser = require("body-parser");
-const multer = require("multer");
+
 
 app.use(session({
   secret: "secretKey",
@@ -178,42 +176,33 @@ app.get("/", function (request, response) {
 });
 
 app.post("/photos/new", function (request, response) {
-  if (hasNoUserSession(request, response)) return;
-  const user_id = getSessionUserID(request) || "";
-  if (user_id === "") {
-    console.error("Error in /photos/new", user_id);
-    response.status(400).send("user_id required");
+  if (!request.session.user) {
+    response.status(401).send("Unauthorized");
     return;
   }
+  const user_id = request.session.user._id;
   processFormBody(request, response, function (err) {
     if (err || !request.file) {
-      console.error("Error in /photos/new", err);
       response.status(400).send("photo required");
       return;
     }
     const timestamp = new Date().valueOf();
-    const filename = 'U' +  String(timestamp) + request.file.originalname;
+    const filename = 'U' + String(timestamp) + request.file.originalname;
     fs.writeFile("./images/" + filename, request.file.buffer, function (err1) {
       if (err1) {
-        console.error("Error in /photos/new", err1);
         response.status(400).send("error writing photo");
         return;
       }
-      Photo.create(
-          {
-            _id: new mongoose.Types.ObjectId(),
-            file_name: filename,
-            date_time: new Date(),
-            user_id: new mongoose.Types.ObjectId(user_id),
-            comment: []
-          })
-          .then(() => {
-            response.end();
-          })
-          .catch(err2 => {
-            console.error("Error in /photos/new", err2);
-            response.status(500).send(JSON.stringify(err2));
-          });
+      Photo.create({
+        file_name: filename,
+        date_time: new Date(),
+        user_id: user_id,
+        comments: []
+      }).then(() => {
+        response.status(200).send("Photo uploaded successfully");
+      }).catch(err2 => {
+        response.status(500).send(JSON.stringify(err2));
+      });
     });
   });
 });

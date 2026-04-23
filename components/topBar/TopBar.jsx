@@ -59,27 +59,40 @@ class TopBar extends React.Component {
   };
 
   render() {
+    const { loggedInUser, onLogout } = this.props;
+    const isLoggedIn = !!loggedInUser;
+
     return (
       <AppBar className="topbar-appBar" position="absolute">
         <Toolbar>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={this.handleFileChange}
-          />
+          {isLoggedIn && (
+            <>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={this.handleFileChange}
+              />
 
-          <button type="button" onClick={this.handleUpload}>
-            Add Photo
-          </button>
+              <button type="button" onClick={this.handleUpload}>
+                Add Photo
+              </button>
 
-          <span style={{ marginLeft: '8px', marginRight: '16px' }}>
-            {this.state.selectedFileName}
-          </span>
+              <span style={{ marginLeft: '8px', marginRight: '16px' }}>
+                {this.state.selectedFileName}
+              </span>
+            </>
+          )}
 
           <Typography variant="h5" color="inherit" style={{ flexGrow: 1 }}>
-            Chelsey Clinton
+            {isLoggedIn ? `Hi ${loggedInUser.first_name}` : 'Please Login'}
             {this.state.version !== undefined && ` — v${this.state.version}`}
           </Typography>
+
+          {isLoggedIn && (
+            <button onClick={onLogout} style={{ marginLeft: '16px' }}>
+              Logout
+            </button>
+          )}
 
           <Typography variant="h6" color="inherit">
             {this.props.mainContent || ''}
