@@ -47,7 +47,7 @@ const SchemaInfo = require("./schema/schemaInfo.js");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const multer = require("multer");
-app.use(session({secret: "secretKey", resave: false, saveUninitialized: false}));
+app.use(session({ secret: "secretKey", resave: false, saveUninitialized: false }));
 app.use(bodyParser.json());
 
 app.post("/admin/login", function (request, response) {
@@ -79,7 +79,7 @@ app.post("/admin/logout", function (request, response) {
     response.status(400).send("No user logged in");
     return;
   }
-  request.session.destroy(function(err) {
+  request.session.destroy(function (err) {
     if (err) {
       response.status(500).send("Error logging out");
       return;
@@ -129,7 +129,15 @@ app.post("/user", function (request, response) {
       if (err) {
         response.status(400).send("Error creating user");
       } else {
-        response.status(200).send("User created successfully");
+        response.status(200).json({
+          _id: newUser._id,
+          login_name: newUser.login_name,
+          first_name: newUser.first_name,
+          last_name: newUser.last_name,
+          location: newUser.location,
+          description: newUser.description,
+          occupation: newUser.occupation
+        });
       }
     });
   });
@@ -158,14 +166,6 @@ mongoose.connect("mongodb://127.0.0.1/project6", {
 
 app.use(express.static(__dirname));
 const fs = require("fs");
-
-
-app.use(session({
-  secret: "secretKey",
-  resave: false,
-  saveUninitialized: false,
-}));
-app.use(bodyParser.json());
 
 const processFormBody = multer({
   storage: multer.memoryStorage(),
@@ -371,6 +371,7 @@ app.get("/photosOfUser/:id", requireLogin, async function (request, response) {
 app.post("/commentsOfPhoto/:photo_id", requireLogin, async function (request, response) {
   const commentText = request.body.comment;
 
+  // Reject empty comment
   if (!commentText || commentText.trim() === "") {
     response.status(400).send("Comment cannot be empty");
     return;
