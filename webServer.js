@@ -44,6 +44,51 @@ const User = require("./schema/user.js");
 const Photo = require("./schema/photo.js");
 const SchemaInfo = require("./schema/schemaInfo.js");
 
+const session = require("express-session");
+const bodyParser = require("body-parser");
+const multer = require("multer");
+app.use(session({secret: "secretKey", resave: false, saveUninitialized: false}));
+app.use(bodyParser.json());
+
+app.post("/admin/login", function (request, response) {
+  const { login_name } = request.body;
+
+  User.findOne({ login_name: login_name }, function (err, user) {
+    if (err || !user) {
+      response.status(400).send("Invalid login name");
+      return;
+    }
+    request.session.user = user;
+    response.status(200).json({
+      _id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      location: user.location,
+    })
+  });
+});
+
+app.post("/admin/logout", function (request, response) {
+  if (!request.session.user) {
+    response.status(400).send("No user logged in");
+    return;
+  }
+  request.session.destroy(function(err) {
+    if (err) {
+      response.status(500).send("Error logging out");
+      return;
+    }
+    response.status(200).send("Logged out successfully");
+  });
+});
+
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.status(401).send("Unauthorized");
+  }
+  next();
+}
+
 // XXX - Your submission should work without this line. Comment out or delete
 // this line for tests and before submission!
 
@@ -73,7 +118,7 @@ app.get("/", function (request, response) {
  * /test/counts - Returns an object with the counts of the different collections
  *                in JSON format.
  */
-app.get("/test/:p1", function (request, response) {
+app.get("/test/:p1", requireLogin, function (request, response) {
   // Express parses the ":p1" from the URL and returns it in the request.params
   // objects.
   console.log("/test called with param1 = ", request.params.p1);
@@ -142,7 +187,7 @@ app.get("/test/:p1", function (request, response) {
 /**
  * URL /user/list - Returns all the User objects.
  */
-app.get("/user/list", function (request, response) {
+app.get("/user/list", requireLogin, function (request, response) {
   User.find({}, "_id first_name last_name", function (err, users) {
     if (err) {
       response.status(400).send(err);
@@ -155,7 +200,7 @@ app.get("/user/list", function (request, response) {
 /**
  * URL /user/:id - Returns the information for User (id).
  */
-app.get("/user/:id", function (request, response) {
+app.get("/user/:id", requireLogin, function (request, response) {
   const id = request.params.id;
 
   User.findById(id)
@@ -185,7 +230,7 @@ app.get("/user/:id", function (request, response) {
 /**
  * URL /photosOfUser/:id - Returns the Photos for User (id).
  */
-app.get("/photosOfUser/:id", async function (request, response) {
+app.get("/photosOfUser/:id", requireLogin, async function (request, response) {
   const id = request.params.id;
 
   // Validate ObjectId
