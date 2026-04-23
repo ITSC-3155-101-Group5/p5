@@ -16,7 +16,8 @@ class UserPhotos extends React.Component {
       photos: [],
       user: null,
       loading: true,
-      error: null
+      error: null,
+      commentInputs: {} // photoId -> comment text
     };
   }
 
