@@ -266,6 +266,57 @@ app.get("/photosOfUser/:id", requireLogin, async function (request, response) {
   }
 });
 
+app.post("/commentsOfPhoto/:photo_id", (req, res) => {
+  const commentText = req.body.comment;
+
+  // Reject empty comment
+  if (!commentText || commentText.trim() === "") {
+    res.status(400).send("Comment cannot be empty");
+    return;
+  }
+
+  const photoId = req.params.photo_id;
+
+  // Find the photo across all users
+  let foundPhoto = null;
+
+  const users = Models.userListModel();
+  users.forEach((user) => {
+    const photos = Models.photoOfUserModel(user._id);
+    photos.forEach((photo) => {
+      if (photo._id === photoId) {
+        foundPhoto = photo;
+      }
+    });
+  });
+
+  if (!foundPhoto) {
+    res.status(404).send("Photo not found");
+    return;
+  }
+
+  // Create new comment
+  const newComment = {
+    _id: "c" + Date.now(),
+    comment: commentText,
+    date_time: new Date().toISOString(),
+    user: req.session.user || {
+      _id: "unknown",
+      first_name: "Anonymous",
+      last_name: ""
+    }
+  };
+
+  // Add comment
+  if (!foundPhoto.comments) {
+    foundPhoto.comments = [];
+  }
+
+  foundPhoto.comments.push(newComment);
+
+  res.status(200).json(newComment);
+});
+
 const server = app.listen(3000, function () {
   const port = server.address().port;
   console.log(
