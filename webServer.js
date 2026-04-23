@@ -51,20 +51,26 @@ app.use(session({secret: "secretKey", resave: false, saveUninitialized: false}))
 app.use(bodyParser.json());
 
 app.post("/admin/login", function (request, response) {
-  const { login_name } = request.body;
+  const { login_name, password } = request.body;
 
   User.findOne({ login_name: login_name }, function (err, user) {
     if (err || !user) {
       response.status(400).send("Invalid login name");
       return;
     }
+
+    if (user.password !== password) {
+      response.status(400).send("Invalid password");
+      return;
+    }
+
     request.session.user = user;
     response.status(200).json({
       _id: user._id,
       first_name: user.first_name,
       last_name: user.last_name,
       location: user.location,
-    })
+    });
   });
 });
 
@@ -79,6 +85,53 @@ app.post("/admin/logout", function (request, response) {
       return;
     }
     response.status(200).send("Logged out successfully");
+  });
+});
+
+app.post("/user", function (request, response) {
+  const {
+    login_name,
+    password,
+    first_name,
+    last_name,
+    location,
+    description,
+    occupation
+  } = request.body;
+
+  if (!login_name || !password || !first_name || !last_name) {
+    response.status(400).send("Missing required fields");
+    return;
+  }
+
+  User.findOne({ login_name: login_name }, function (err, existingUser) {
+    if (err) {
+      response.status(400).send("Error checking user");
+      return;
+    }
+
+    if (existingUser) {
+      response.status(400).send("Login name already exists");
+      return;
+    }
+
+    const newUser = new User({
+      login_name,
+      password,
+      first_name,
+      last_name,
+      location,
+      description,
+      occupation
+    });
+
+    newUser.save(function (err) {
+      if (err) {
+        response.status(400).send("Error creating user");
+      } else {
+        response.status(200).send("User created successfully");
+      }
+    });
   });
 });
 
