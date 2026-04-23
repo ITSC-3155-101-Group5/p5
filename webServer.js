@@ -159,14 +159,6 @@ mongoose.connect("mongodb://127.0.0.1/project6", {
 app.use(express.static(__dirname));
 const fs = require("fs");
 
-
-app.use(session({
-  secret: "secretKey",
-  resave: false,
-  saveUninitialized: false,
-}));
-app.use(bodyParser.json());
-
 const processFormBody = multer({
   storage: multer.memoryStorage(),
 }).single("uploadedphoto");
